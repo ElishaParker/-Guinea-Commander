@@ -119,7 +119,8 @@ update(dt) {
   }
 
   // Audio test triggers
-  if (this.input.keys[' '] && !this.lastSpace) {
+  if (this.input.keys[' '] && !this.lastSpace) 
+  {
     this.audio.play(this.audio.sounds.pellet);
   }
   if (this.input.mouse.pressed && !this.lastClick) {
