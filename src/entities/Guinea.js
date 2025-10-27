@@ -23,14 +23,11 @@ export default class Guinea {
     this.follow = false;
   }
 
-  fixedUpdate(dt) {
-    if (this.converted || this.expired) return;
-
-    this.lifeTimer -= dt;
-    if (this.lifeTimer <= 0 && !this.converted) {
-      this.timeout();
-      return;
-    }
+if (!isFinite(this.x) || !isFinite(this.y)) {
+  console.warn("Invalid guinea coordinates", this);
+  this.expired = true;
+  return;
+}
 
     // Random wander behavior
     this.directionTimer -= dt;
