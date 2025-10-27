@@ -92,16 +92,28 @@ export default class Guinea {
     }
   }
 
-  convert() {
-    this.converted = true;
-    this.color = '#FFFF55';
+convert() {
+  if (this.converted || this.expired) return;
+  this.converted = true;
+  this.color = '#FFFF55';
+
+  // Safeguard: make sure player and audio exist
+  if (this.game?.player) {
     this.game.player.hp += 100;
     this.game.player.score += 100;
     this.game.player.army += 1;
-    this.game.audio.play(this.game.audio.sounds.convert);
-
-    // TODO: sparkle FX
   }
+
+  try {
+    this.game.audio?.play?.(this.game.audio.sounds.convert);
+  } catch (err) {
+    console.warn("Audio play failed during conversion:", err);
+  }
+
+  // Remove guinea from active list safely
+  this.expired = true;
+}
+
 
   timeout() {
     this.expired = true;
