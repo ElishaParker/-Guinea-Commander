@@ -23,11 +23,14 @@ export default class Guinea {
     this.follow = false;
   }
 
-if (!isFinite(this.x) || !isFinite(this.y)) {
-  console.warn("Invalid guinea coordinates", this);
-  this.expired = true;
-  return;
-}
+  fixedUpdate(dt) {
+    if (this.converted || this.expired) return;
+
+    this.lifeTimer -= dt;
+    if (this.lifeTimer <= 0 && !this.converted) {
+      this.timeout();
+      return;
+    }
 
     // Random wander behavior
     this.directionTimer -= dt;
@@ -89,30 +92,18 @@ if (!isFinite(this.x) || !isFinite(this.y)) {
     }
   }
 
-convert() {
-  if (this.converted || this.expired) return;
-  this.converted = true;
-  this.color = '#FFFF55';
-
-  // Safeguard: make sure player and audio exist
-  if (this.game?.player) {
+  convert() {
+    if (this.converted) return;
+    this.converted = true;
+    this.color = '#FFFF55';
     this.game.player.hp += 100;
     this.game.player.score += 100;
     this.game.player.army += 1;
+    this.game.audio.play(this.game.audio.sounds.convert);
   }
-
-  try {
-    this.game.audio?.play?.(this.game.audio.sounds.convert);
-  } catch (err) {
-    console.warn("Audio play failed during conversion:", err);
-  }
-
-  // Remove guinea from active list safely
-  this.expired = true;
-}
-
 
   timeout() {
+    if (this.expired) return;
     this.expired = true;
     this.color = '#888888';
     this.game.player.hp -= 10;
