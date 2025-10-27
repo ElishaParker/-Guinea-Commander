@@ -5,9 +5,14 @@
 
 // -------------------- /src/core/Game.js --------------------
 
+// -------------------- /src/core/Game.js --------------------
+
 import Input from './Input.js';
 import AudioSystem from './AudioSystem.js';
 import CollisionSystem from './CollisionSystem.js';
+import Player from '../entities/Player.js';
+import Guinea from '../entities/Guinea.js';
+
 
 
 export default class Game {
