@@ -58,19 +58,32 @@ export default class Game {
   }
 
   start() {
-    this.state = 'PLAYING';
+  this.state = 'PLAYING';
 
-    // Arena boundaries
-    this.walls = [
-      { x: 0, y: 0, w: this.width, h: 16 },
-      { x: 0, y: this.height - 16, w: this.width, h: 16 },
-      { x: 0, y: 0, w: 16, h: this.height },
-      { x: this.width - 16, y: 0, w: 16, h: this.height }
-    ];
+  // arena walls
+  this.walls = [
+    { x: 0, y: 0, w: this.width, h: 16 },
+    { x: 0, y: this.height - 16, w: this.width, h: 16 },
+    { x: 0, y: 0, w: 16, h: this.height },
+    { x: this.width - 16, y: 0, w: 16, h: this.height }
+  ];
 
-    this.lastTime = performance.now();
-    requestAnimationFrame(this.loop.bind(this));
+  // player in center
+  this.player = new Player(this);
+  this.entities.push(this.player);
+
+  // guinea wave 1
+  for (let i = 0; i < 5; i++) {
+    const gx = 80 + Math.random() * (this.width - 160);
+    const gy = 80 + Math.random() * (this.height - 160);
+    const guinea = new Guinea(this, gx, gy, 80);
+    this.entities.push(guinea);
   }
+
+  this.lastTime = performance.now();
+  requestAnimationFrame(this.loop.bind(this));
+}
+
 
   pause() {
     this.paused = true;
