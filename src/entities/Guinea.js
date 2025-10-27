@@ -23,14 +23,58 @@ export default class Guinea {
     this.follow = false;
   }
 
-  fixedUpdate(dt) {
-    if (this.converted || this.expired) return;
+fixedUpdate(dt) {
+  if (this.converted || this.expired) return;
 
-    this.lifeTimer -= dt;
-    if (this.lifeTimer <= 0 && !this.converted) {
-      this.timeout();
-      return;
+  this.lifeTimer -= dt;
+  if (this.lifeTimer <= 0 && !this.converted) {
+    // instead of triggering timeout() instantly,
+    // mark for removal next frame
+    this.expired = true;
+    this.pendingTimeout = true;
+    return;
+  }
+
+  // Wander or follow behavior
+  this.directionTimer -= dt;
+  if (this.directionTimer <= 0) {
+    this.vx = (Math.random() - 0.5) * this.speed;
+    this.vy = (Math.random() - 0.5) * this.speed;
+    this.directionTimer = 1 + Math.random();
+  }
+
+  if (this.follow && this.game.player) {
+    const dx = this.game.player.x - this.x;
+    const dy = this.game.player.y - this.y;
+    const dist = Math.hypot(dx, dy);
+    if (dist > 1) {
+      this.vx = (dx / dist) * this.speed * 0.5;
+      this.vy = (dy / dist) * this.speed * 0.5;
     }
+  }
+
+  this.x += this.vx * dt;
+  this.y += this.vy * dt;
+  this.game.collision.resolve(this, this.game.walls);
+
+  // trigger timeout only once and safely, after motion
+  if (this.pendingTimeout) {
+    this.pendingTimeout = false;
+    this.timeout();
+  }
+}
+
+timeout() {
+  if (this.expiredHandled) return;
+  this.expiredHandled = true;
+  this.color = '#888888';
+  this.game.player.hp -= 10;
+  this.game.player.score -= 10;
+  if (this.game.audio?.sounds?.timeout) {
+    this.game.audio.play(this.game.audio.sounds.timeout);
+  }
+}
+
 
     // Random wander behavior
     this.directionTimer -= dt;
