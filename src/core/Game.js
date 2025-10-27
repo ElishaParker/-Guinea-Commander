@@ -121,22 +121,33 @@ export default class Game {
     this.lastClick = this.input.mouse.pressed;
   }
 
-  draw() {
-    const ctx = this.ctx;
-    ctx.save();
-    ctx.scale(this.scale, this.scale);
-    ctx.clearRect(0, 0, this.width, this.height);
-    ctx.fillStyle = '#202030';
-    ctx.fillRect(0, 0, this.width, this.height);
+draw() {
+  const ctx = this.ctx;
+  ctx.save();
 
-    this.entities.forEach(e => e.draw?.(ctx));
+  // Scale for pixel-perfect rendering
+  ctx.scale(this.scale, this.scale);
+  ctx.clearRect(0, 0, this.width, this.height);
 
-    ctx.fillStyle = '#303048';
-    this.walls.forEach(w => ctx.fillRect(w.x, w.y, w.w, w.h));
+  // Background
+  ctx.fillStyle = '#202030';
+  ctx.fillRect(0, 0, this.width, this.height);
 
-    if (this.debug) this.drawDebug(ctx);
-    ctx.restore();
+  // Draw entities (player + guineas + projectiles)
+  for (const e of this.entities) {
+    if (e && e.draw) e.draw(ctx);
   }
+
+  // Walls
+  ctx.fillStyle = '#303048';
+  for (const w of this.walls) ctx.fillRect(w.x, w.y, w.w, w.h);
+
+  // Debug overlay
+  if (this.debug) this.drawDebug(ctx);
+
+  ctx.restore();
+}
+
 
   drawDebug(ctx) {
     ctx.fillStyle = 'lime';
