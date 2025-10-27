@@ -201,16 +201,17 @@ draw() {
     }
   }
 
-  loop(now) {
-    const delta = Math.min((now - this.lastTime) / 1000, 0.05);
-    this.lastTime = now;
+loop(now) {
+  const delta = Math.min((now - this.lastTime) / 1000, 0.05);
+  this.lastTime = now;
 
-    if (this.paused) {
-      this.accumulator = 0;
-      requestAnimationFrame(this.loop.bind(this));
-      return;
-    }
+  if (this.paused) {
+    this.accumulator = 0;
+    requestAnimationFrame(this.loop.bind(this));
+    return;
+  }
 
+  try {
     if (this.state === 'PLAYING') {
       this.accumulator += delta;
       while (this.accumulator >= this.fixedDelta) {
@@ -219,6 +220,24 @@ draw() {
       }
       this.update(delta);
     }
+
+    this.draw();
+
+    this.frames++;
+    this.fpsTimer += delta;
+    if (this.fpsTimer >= 1) {
+      this.fps = this.frames / this.fpsTimer;
+      this.frames = 0;
+      this.fpsTimer = 0;
+    }
+  } catch (err) {
+    console.error("💥 Game loop error:", err);
+    this.paused = true;
+  }
+
+  requestAnimationFrame(this.loop.bind(this));
+}
+
 
     this.draw();
 
