@@ -26,6 +26,4 @@ Each rescued friend strengthens you — compassion is your weapon.
 
 ---
 
-## 🧱 Project Structure
-
-
+https://elishaparker.github.io/-Guinea-Commander/
