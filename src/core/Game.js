@@ -80,6 +80,8 @@ export default class Game {
     this.entities.push(guinea);
   }
 
+  console.log("Entities loaded:", this.entities.length);
+
   this.lastTime = performance.now();
   requestAnimationFrame(this.loop.bind(this));
 }
