@@ -109,8 +109,14 @@ export default class Game {
     this.entities.forEach(e => e.fixedUpdate?.(dt));
   }
 
-  update(dt) {
-    this.entities.forEach(e => e.update?.(dt, this.input));
+for (const e of this.entities) {
+  try {
+    if (e && e.update) e.update(dt, this.input);
+  } catch (err) {
+    console.warn("Entity update error:", e, err);
+  }
+}
+
 
     // Audio test triggers
     if (this.input.keys[' '] && !this.lastSpace) {
