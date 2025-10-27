@@ -1,5 +1,5 @@
 // -------------------- /src/entities/Guinea.js --------------------
-// Guinea Commander (v3.5) - Guinea Entity
+// Guinea Commander (v3.6) - Stable Version
 // Author: Elisha Blue Parker & Lennard AI
 
 export default class Guinea {
@@ -27,16 +27,16 @@ export default class Guinea {
   }
 
   fixedUpdate(dt) {
-    if (this.converted || this.expired) return;
+    if (this.expired) return;
 
-    // Lifetime countdown
+    // Lifetime
     this.lifeTimer -= dt;
     if (this.lifeTimer <= 0 && !this.converted) {
       this.timeout();
       return;
     }
 
-    // Random wander behavior
+    // Random wander
     this.directionTimer -= dt;
     if (this.directionTimer <= 0) {
       this.vx = (Math.random() - 0.5) * this.speed;
@@ -55,16 +55,15 @@ export default class Guinea {
       }
     }
 
-    // Position update
+    // Position
     this.x += this.vx * dt;
     this.y += this.vy * dt;
 
-    // Wall collisions
     this.game.collision.resolve(this, this.game.walls);
   }
 
   update(dt) {
-    if (this.converted || this.expired) return;
+    if (this.expired) return;
 
     // Check collisions with pellets and pets
     for (const pellet of this.game.player.pellets) {
@@ -88,38 +87,41 @@ export default class Guinea {
     this.rewardCount++;
     this.game.player.score += 1;
 
+    // Starts to follow player after first feed
     if (this.rewardCount === 1) {
       this.follow = true;
       this.color = '#FF77AA'; // trust pink
     }
 
+    // Converts after enough feedings
     if (this.rewardCount >= 5) {
       this.convert();
     }
   }
 
-convert() {
-  if (this.converted) return;
-  this.converted = true;
-  this.color = '#FFFF55';
-  this.game.player.hp += 100;
-  this.game.player.score += 100;
-  this.game.player.army += 1;
+  convert() {
+    if (this.converted) return;
+    this.converted = true;
+    this.color = '#FFFF55'; // golden ally
+    this.follow = true;
+    this.speed = 60;
+    this.lifeTimer = Infinity; // never expires
+    this.expired = false; // ensure stays active
 
-  if (this.game.audio?.sounds?.convert) {
-    this.game.audio.play(this.game.audio.sounds.convert);
+    this.game.player.hp += 100;
+    this.game.player.score += 100;
+    this.game.player.army += 1;
+
+    if (this.game.audio?.sounds?.convert) {
+      this.game.audio.play(this.game.audio.sounds.convert);
+    }
+
+    // Mark as ally instead of cleanup target
+    this.isAlly = true;
   }
 
-  // mark as "converted ally" instead of dead
-  this.follow = true;
-  this.speed = 60;
-  this.expired = false; // prevent auto-cleanup
-  this.lifeTimer = 9999; // stays in the game indefinitely
-}
-
-
   timeout() {
-    if (this.expiredHandled) return;
+    if (this.expiredHandled || this.converted) return;
     this.expiredHandled = true;
     this.expired = true;
     this.color = '#888888';
