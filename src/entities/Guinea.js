@@ -98,20 +98,25 @@ export default class Guinea {
     }
   }
 
-  convert() {
-    if (this.converted) return;
-    this.converted = true;
-    this.color = '#FFFF55';
-    this.game.player.hp += 100;
-    this.game.player.score += 100;
-    this.game.player.army += 1;
+convert() {
+  if (this.converted) return;
+  this.converted = true;
+  this.color = '#FFFF55';
+  this.game.player.hp += 100;
+  this.game.player.score += 100;
+  this.game.player.army += 1;
 
-    if (this.game.audio?.sounds?.convert) {
-      this.game.audio.play(this.game.audio.sounds.convert);
-    }
-
-    // Optional sparkle FX placeholder
+  if (this.game.audio?.sounds?.convert) {
+    this.game.audio.play(this.game.audio.sounds.convert);
   }
+
+  // mark as "converted ally" instead of dead
+  this.follow = true;
+  this.speed = 60;
+  this.expired = false; // prevent auto-cleanup
+  this.lifeTimer = 9999; // stays in the game indefinitely
+}
+
 
   timeout() {
     if (this.expiredHandled) return;
