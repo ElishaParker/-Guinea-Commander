@@ -1,9 +1,6 @@
 // ==========================================
-//  Guinea Commander - Core Game Module (v3.6)
-//  Author: Elisha Blue Parker & Lennard AI
+//  Guinea Commander - Core Game Module (v3.7)
 // ==========================================
-
-// -------------------- /src/core/Game.js --------------------
 
 import Input from './Input.js';
 import AudioSystem from './AudioSystem.js';
@@ -19,17 +16,14 @@ export default class Game {
     this.height = height;
     this.scale = scale;
 
-    // Systems
     this.input = new Input();
     this.audio = new AudioSystem();
     this.collision = new CollisionSystem();
 
-    // State variables
     this.state = 'MENU';
     this.entities = [];
     this.walls = [];
 
-    // Debug / timing
     this.debug = true;
     this.lastTime = 0;
     this.accumulator = 0;
@@ -45,7 +39,6 @@ export default class Game {
     this.lastSpace = false;
     this.lastClick = false;
 
-    // Event listeners
     window.addEventListener('blur', () => this.pause());
     window.addEventListener('focus', () => this.resume());
     window.addEventListener('keydown', e => {
@@ -56,7 +49,6 @@ export default class Game {
   start() {
     this.state = 'PLAYING';
 
-    // Arena walls
     this.walls = [
       { x: 0, y: 0, w: this.width, h: 16 },
       { x: 0, y: this.height - 16, w: this.width, h: 16 },
@@ -64,11 +56,9 @@ export default class Game {
       { x: this.width - 16, y: 0, w: 16, h: this.height }
     ];
 
-    // Player in center
     this.player = new Player(this);
     this.entities.push(this.player);
 
-    // Guinea wave 1
     for (let i = 0; i < 5; i++) {
       const gx = 80 + Math.random() * (this.width - 160);
       const gy = 80 + Math.random() * (this.height - 160);
@@ -76,8 +66,7 @@ export default class Game {
       this.entities.push(guinea);
     }
 
-    console.log("Entities loaded:", this.entities.length);
-
+    console.log('Entities loaded:', this.entities.length);
     this.lastTime = performance.now();
     requestAnimationFrame(this.loop.bind(this));
   }
@@ -102,61 +91,45 @@ export default class Game {
 
   fixedUpdate(dt) {
     for (const e of this.entities) {
-      if (e.fixedUpdate) {
-        try { e.fixedUpdate(dt); }
-        catch (err) { console.warn('fixedUpdate error:', e, err); }
-      }
+      if (e.fixedUpdate) e.fixedUpdate(dt);
     }
   }
 
   update(dt) {
-    // Update all entities safely
     for (const e of this.entities) {
-      if (e && e.update) {
-        try { e.update(dt, this.input); }
-        catch (err) { console.warn("Entity update error:", e, err); }
+      try {
+        if (e && e.update) e.update(dt, this.input);
+      } catch (err) {
+        console.warn('Entity update error:', e, err);
       }
     }
 
-    // Audio test triggers
     if (this.input.keys[' '] && !this.lastSpace) {
       this.audio.play(this.audio.sounds.pellet);
     }
     if (this.input.mouse.pressed && !this.lastClick) {
       this.audio.play(this.audio.sounds.pet);
     }
-
     this.lastSpace = this.input.keys[' '];
     this.lastClick = this.input.mouse.pressed;
 
-    // Cleanup expired entities
     this.entities = this.entities.filter(e => !e.expired);
   }
 
   draw() {
     const ctx = this.ctx;
     ctx.save();
-
-    // Scale for pixel-perfect rendering
     ctx.scale(this.scale, this.scale);
     ctx.clearRect(0, 0, this.width, this.height);
-
-    // Background
     ctx.fillStyle = '#202030';
     ctx.fillRect(0, 0, this.width, this.height);
 
-    // Draw entities (player + guineas + projectiles)
-    for (const e of this.entities) {
-      if (e && e.draw) e.draw(ctx);
-    }
+    for (const e of this.entities) if (e.draw) e.draw(ctx);
 
-    // Walls
     ctx.fillStyle = '#303048';
     for (const w of this.walls) ctx.fillRect(w.x, w.y, w.w, w.h);
 
-    // Debug overlay
     if (this.debug) this.drawDebug(ctx);
-
     ctx.restore();
   }
 
@@ -168,11 +141,11 @@ export default class Game {
     ctx.fillText(`State: ${this.state}`, 10, 60);
     ctx.fillText(`Engine ${window.ENGINE_VERSION}`, 10, 80);
 
-    let logY = 120;
+    let y = 120;
     ctx.fillStyle = 'yellow';
     for (const log of this.logs.slice(-5)) {
-      ctx.fillText(log, 10, logY);
-      logY += 20;
+      ctx.fillText(log, 10, y);
+      y += 20;
     }
   }
 
@@ -206,7 +179,7 @@ export default class Game {
         this.fpsTimer = 0;
       }
     } catch (err) {
-      console.error("💥 Game loop error:", err);
+      console.error('💥 Game loop error:', err);
       this.paused = true;
     }
 
