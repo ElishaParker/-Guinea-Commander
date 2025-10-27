@@ -118,6 +118,18 @@ update(dt) {
     }
   }
 
+  // Audio test triggers
+  if (this.input.keys[' '] && !this.lastSpace) {
+    this.audio.play(this.audio.sounds.pellet);
+  }
+  if (this.input.mouse.pressed && !this.lastClick) {
+    this.audio.play(this.audio.sounds.pet);
+  }
+  this.lastSpace = this.input.keys[' '];
+  this.lastClick = this.input.mouse.pressed;
+}
+
+
   // Simple audio triggers for test
   if (this.input.keys[' '] && !this.lastSpace) {
     this.audio.play(this.audio.sounds.pellet);
