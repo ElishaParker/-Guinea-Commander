@@ -1,9 +1,13 @@
+// ==========================================
+//  Guinea Commander - Core Game Module (v3.5)
+//  Author: Elisha Blue Parker & Lennard AI
+// ==========================================
+
 // -------------------- /src/core/Game.js --------------------
 
-import { Input } from './Input.js';
-import { AudioSystem } from './AudioSystem.js';
-import { CollisionSystem } from './CollisionSystem.js';
-
+import Input from './Input.js';
+import AudioSystem from './AudioSystem.js';
+import CollisionSystem from './CollisionSystem.js';
 
 export default class Game {
   constructor(canvas, ctx, width, height, scale) {
@@ -13,14 +17,17 @@ export default class Game {
     this.height = height;
     this.scale = scale;
 
+    // Systems
     this.input = new Input();
     this.audio = new AudioSystem();
     this.collision = new CollisionSystem();
 
+    // State variables
     this.state = 'MENU';
     this.entities = [];
     this.walls = [];
 
+    // Debug / timing
     this.debug = true;
     this.lastTime = 0;
     this.accumulator = 0;
@@ -31,12 +38,12 @@ export default class Game {
     this.fpsTimer = 0;
     this.logs = [];
     this.maxLogs = 10;
-
     this.paused = false;
 
     this.lastSpace = false;
     this.lastClick = false;
 
+    // Event listeners
     window.addEventListener('blur', () => this.pause());
     window.addEventListener('focus', () => this.resume());
     window.addEventListener('keydown', e => {
@@ -47,7 +54,7 @@ export default class Game {
   start() {
     this.state = 'PLAYING';
 
-    // Temporary walls (arena boundaries)
+    // Arena boundaries
     this.walls = [
       { x: 0, y: 0, w: this.width, h: 16 },
       { x: 0, y: this.height - 16, w: this.width, h: 16 },
@@ -55,7 +62,6 @@ export default class Game {
       { x: this.width - 16, y: 0, w: 16, h: this.height }
     ];
 
-    // TODO: generateArena(theme)
     this.lastTime = performance.now();
     requestAnimationFrame(this.loop.bind(this));
   }
@@ -79,17 +85,13 @@ export default class Game {
   }
 
   fixedUpdate(dt) {
-    this.entities.forEach(e => {
-      if (e.fixedUpdate) e.fixedUpdate(dt);
-    });
+    this.entities.forEach(e => e.fixedUpdate?.(dt));
   }
 
   update(dt) {
-    this.entities.forEach(e => {
-      if (e.update) e.update(dt, this.input);
-    });
+    this.entities.forEach(e => e.update?.(dt, this.input));
 
-    // Simple audio triggers for test
+    // Audio test triggers
     if (this.input.keys[' '] && !this.lastSpace) {
       this.audio.play(this.audio.sounds.pellet);
     }
@@ -108,12 +110,10 @@ export default class Game {
     ctx.fillStyle = '#202030';
     ctx.fillRect(0, 0, this.width, this.height);
 
-    this.entities.forEach(e => {
-      if (e.draw) e.draw(ctx);
-    });
+    this.entities.forEach(e => e.draw?.(ctx));
 
     ctx.fillStyle = '#303048';
-    for (const w of this.walls) ctx.fillRect(w.x, w.y, w.w, w.h);
+    this.walls.forEach(w => ctx.fillRect(w.x, w.y, w.w, w.h));
 
     if (this.debug) this.drawDebug(ctx);
     ctx.restore();
@@ -129,7 +129,7 @@ export default class Game {
 
     let logY = 120;
     ctx.fillStyle = 'yellow';
-    for (let log of this.logs.slice(-5)) {
+    for (const log of this.logs.slice(-5)) {
       ctx.fillText(log, 10, logY);
       logY += 20;
     }
