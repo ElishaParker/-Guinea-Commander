@@ -109,13 +109,29 @@ export default class Game {
     this.entities.forEach(e => e.fixedUpdate?.(dt));
   }
 
-for (const e of this.entities) {
-  try {
-    if (e && e.update) e.update(dt, this.input);
-  } catch (err) {
-    console.warn("Entity update error:", e, err);
+update(dt) {
+  for (const e of this.entities) {
+    try {
+      if (e && e.update) e.update(dt, this.input);
+    } catch (err) {
+      console.warn("Entity update error:", e, err);
+    }
   }
+
+  // Simple audio triggers for test
+  if (this.input.keys[' '] && !this.lastSpace) {
+    this.audio.play(this.audio.sounds.pellet);
+  }
+  if (this.input.mouse.pressed && !this.lastClick) {
+    this.audio.play(this.audio.sounds.pet);
+  }
+  this.lastSpace = this.input.keys[' '];
+  this.lastClick = this.input.mouse.pressed;
+
+  // Cleanup expired entities
+  this.entities = this.entities.filter(e => !e.expired);
 }
+
 
 
     // Audio test triggers
