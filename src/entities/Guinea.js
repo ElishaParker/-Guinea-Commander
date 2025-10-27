@@ -22,7 +22,8 @@ export default class Guinea {
     this.expired = false;
     this.expiredHandled = false;
 
-    this.lifeTimer = 10; // seconds until timeout
+    this.lifeTimer = Infinity; // stay alive until wave logic handles removal
+
     this.follow = false;
   }
 
