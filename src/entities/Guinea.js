@@ -27,7 +27,7 @@ fixedUpdate(dt) {
   if (this.converted || this.expired) return;
 
  this.lifeTimer -= dt;
-if (this.lifeTimer <= 0 && !this.converted) {
+if (this.lifeTimer <= 0 && this.converted) {
     // instead of triggering timeout() instantly,
     // mark for removal next frame
     this.expired = true;
