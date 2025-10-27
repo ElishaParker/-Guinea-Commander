@@ -1,15 +1,15 @@
 // -------------------- /src/entities/Guinea.js --------------------
-// Guinea Commander (v3.6) - Stable Version
+// Guinea Commander (v3.8) - Cohesive Herd Logic
 // Author: Elisha Blue Parker & Lennard AI
 
 export default class Guinea {
-  constructor(game, x, y, speed = 100, waveNumber = 1) {
+  constructor(game, x, y, speed = 100) {
     this.game = game;
     this.x = x;
     this.y = y;
     this.w = 12;
     this.h = 12;
-    this.baseColor = '#FFAA55'; // wander color
+    this.baseColor = '#FFAA55';
     this.color = this.baseColor;
 
     this.vx = (Math.random() - 0.5) * speed;
@@ -19,54 +19,62 @@ export default class Guinea {
 
     this.rewardCount = 0;
     this.converted = false;
-    this.expired = false;
-    this.expiredHandled = false;
-
-    this.lifeTimer = Infinity; // stay alive until wave logic handles removal
-
     this.follow = false;
+    this.isAlly = false;
   }
 
   fixedUpdate(dt) {
-    if (this.expired) return;
-
-    // Lifetime
-    this.lifeTimer -= dt;
-    if (this.lifeTimer <= 0 && !this.converted) {
-      this.timeout();
-      return;
+    // Random wander for unconverted
+    if (!this.converted) {
+      this.directionTimer -= dt;
+      if (this.directionTimer <= 0) {
+        this.vx = (Math.random() - 0.5) * this.speed;
+        this.vy = (Math.random() - 0.5) * this.speed;
+        this.directionTimer = 1 + Math.random();
+      }
     }
 
-    // Random wander
-    this.directionTimer -= dt;
-    if (this.directionTimer <= 0) {
-      this.vx = (Math.random() - 0.5) * this.speed;
-      this.vy = (Math.random() - 0.5) * this.speed;
-      this.directionTimer = 1 + Math.random();
-    }
-
-    // Follow player if partially fed
+    // Follower movement for converted allies
     if (this.follow && this.game.player) {
       const dx = this.game.player.x - this.x;
       const dy = this.game.player.y - this.y;
       const dist = Math.hypot(dx, dy);
-      if (dist > 1) {
-        this.vx = (dx / dist) * this.speed * 0.5;
-        this.vy = (dy / dist) * this.speed * 0.5;
+
+      // maintain slight spacing around player
+      const targetDist = 30 + Math.random() * 10;
+      if (dist > targetDist) {
+        this.vx = (dx / dist) * this.speed * 0.4;
+        this.vy = (dy / dist) * this.speed * 0.4;
+      } else {
+        // gentle idle wiggle
+        this.vx *= 0.8;
+        this.vy *= 0.8;
+      }
+
+      // Separation from other allies
+      for (const other of this.game.entities) {
+        if (other !== this && other.isAlly) {
+          const ox = this.x - other.x;
+          const oy = this.y - other.y;
+          const odist = Math.hypot(ox, oy);
+          if (odist > 0 && odist < 20) {
+            this.vx += (ox / odist) * 40 * dt;
+            this.vy += (oy / odist) * 40 * dt;
+          }
+        }
       }
     }
 
-    // Position
+    // Move and handle boundaries
     this.x += this.vx * dt;
     this.y += this.vy * dt;
-
     this.game.collision.resolve(this, this.game.walls);
   }
 
   update(dt) {
-    if (this.expired) return;
+    // Check pellets/pets for feeding
+    if (this.converted) return;
 
-    // Check collisions with pellets and pets
     for (const pellet of this.game.player.pellets) {
       if (!pellet.dead && this.intersects(pellet)) {
         pellet.dead = true;
@@ -83,31 +91,24 @@ export default class Guinea {
   }
 
   feed() {
-    if (this.converted || this.expired) return;
-
     this.rewardCount++;
     this.game.player.score += 1;
 
-    // Starts to follow player after first feed
     if (this.rewardCount === 1) {
       this.follow = true;
       this.color = '#FF77AA'; // trust pink
     }
 
-    // Converts after enough feedings
-    if (this.rewardCount >= 5) {
-      this.convert();
-    }
+    if (this.rewardCount >= 5) this.convert();
   }
 
   convert() {
     if (this.converted) return;
     this.converted = true;
-    this.color = '#FFFF55'; // golden ally
+    this.isAlly = true;
     this.follow = true;
-    this.speed = 60;
-    this.lifeTimer = Infinity; // never expires
-    this.expired = false; // ensure stays active
+    this.color = '#FFFF55'; // golden ally
+    this.speed = 80;
 
     this.game.player.hp += 100;
     this.game.player.score += 100;
@@ -115,22 +116,6 @@ export default class Guinea {
 
     if (this.game.audio?.sounds?.convert) {
       this.game.audio.play(this.game.audio.sounds.convert);
-    }
-
-    // Mark as ally instead of cleanup target
-    this.isAlly = true;
-  }
-
-  timeout() {
-    if (this.expiredHandled || this.converted) return;
-    this.expiredHandled = true;
-    this.expired = true;
-    this.color = '#888888';
-    this.game.player.hp -= 10;
-    this.game.player.score -= 10;
-
-    if (this.game.audio?.sounds?.timeout) {
-      this.game.audio.play(this.game.audio.sounds.timeout);
     }
   }
 
