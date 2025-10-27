@@ -131,6 +131,7 @@ update(dt) {
 }
 
 
+update(dt) {
   // Simple audio triggers for test
   if (this.input.keys[' '] && !this.lastSpace) {
     this.audio.play(this.audio.sounds.pellet);
@@ -143,7 +144,7 @@ update(dt) {
 
   // Cleanup expired entities
   this.entities = this.entities.filter(e => !e.expired);
-}
+}  // ← this closes update(dt)
 
 
 
